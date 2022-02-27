@@ -1,19 +1,21 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.Callbacks;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
+using System.Reflection;
 
 namespace DialogueSystem.Editor.Graph
 {
     public class StoryGraph : EditorWindow
     {
         private static StoryGraph instance { get; set; }
-
         public DialogueContainer dialogueFile;
         private StoryGraphView _graphView;
         private Toggle _autoSave;
+        private float _timer;
 
         [MenuItem("Graph/Dialogue Graph")]
         public static void CreateGraphViewWindow()
@@ -27,11 +29,91 @@ namespace DialogueSystem.Editor.Graph
                 GetWindow<StoryGraph>();
         }
 
+        [OnOpenAsset(1)]
+        public static bool OnOpenDatabase(int instanceID, int line)
+        {
+            if (instance)
+            {
+                instance.RequestDataOperation(true, instance.dialogueFile, true);
+            }
+            
+            var container = EditorUtility.InstanceIDToObject(instanceID) as DialogueContainer;
+            if (container == null) return false;
+        
+            var lastFile = AssetDatabase.LoadAssetAtPath<DialogueSystemSettings>(
+                "Packages/com.circenses.dialoguesystem/Editor/DialogueSystemSettings.asset");
+            lastFile.lastOpenFile = container;
+        
+            if (instance)
+            {
+                instance.dialogueFile = container;
+                instance.CreateStoryGraph();
+            }
+            else
+            {
+                var dialogueSettings = AssetDatabase.LoadAssetAtPath<DialogueSystemSettings>(
+                    "Packages/com.circenses.dialoguesystem/Editor/DialogueSystemSettings.asset");
+                if (dialogueSettings)
+                    GetWindow<StoryGraph>(dialogueSettings.selectedWindow);
+                else
+                    GetWindow<StoryGraph>();
+            }
+        
+            return true;
+        }
+
+        private void Update()
+        {
+            if (_autoSave == null) return;
+            if (!_autoSave.value) return;
+            if (GrabbingAnyEdge()) return;
+            
+            _timer++;
+            
+            if (_timer > 10000)
+            {
+                _timer = 0;
+                RequestDataOperation(true, dialogueFile, true);
+            }
+        }
+        
+        public void CreateGUI()
+        {
+            CreateStoryGraph();
+        }
+        
         private void OnEnable()
         {
             instance = this;
+            _timer = 0;
+            EditorApplication.wantsToQuit += Quit;
         }
-
+        
+        private void OnDisable()
+        {
+            EditorApplication.wantsToQuit -= Quit;
+            if (rootVisualElement != null && rootVisualElement.childCount > 0) rootVisualElement.Remove(_graphView);
+            
+            if(_autoSave != null && _autoSave.value)
+                RequestDataOperation(true, dialogueFile, true);
+            
+        }
+        private void OnDestroy()
+        {
+            RequestDataOperation(true, dialogueFile, true);
+        }
+        
+        private void OnLostFocus()
+        {
+            RequestDataOperation(true, dialogueFile, true);
+        }
+        
+        private bool Quit()
+        {
+            RequestDataOperation(true, dialogueFile, true);
+            return true;
+        }
+       
         private void ConstructGraphView()
         {
             rootVisualElement.Clear();
@@ -40,9 +122,6 @@ namespace DialogueSystem.Editor.Graph
             
             dialogueFile = lastFile.lastOpenFile;
             
-            EditorUtility.SetDirty(lastFile);
-            AssetDatabase.SaveAssetIfDirty(lastFile);
-
             if (dialogueFile == null)
             {
                 Debug.Log("No hay nada");
@@ -55,7 +134,6 @@ namespace DialogueSystem.Editor.Graph
             _graphView.StretchToParentSize();
             rootVisualElement.Add(_graphView);
         }
-
         private void RequestDataOperation(bool save, DialogueContainer file, bool clearList = false)
         {
             if (string.IsNullOrEmpty(file.name)) return;
@@ -72,11 +150,6 @@ namespace DialogueSystem.Editor.Graph
             {
                 saveUtility.LoadNarrative(file);
             }
-        }
-
-        public void CreateGUI()
-        {
-            CreateStoryGraph();
         }
 
         private void CreateStoryGraph()
@@ -113,23 +186,6 @@ namespace DialogueSystem.Editor.Graph
 
             rootVisualElement.Add(labelFromUxml);
         }
-    
-
-        private void Update()
-        {
-            AutoSave();
-        }
-
-        private void AutoSave()
-        {
-            if (_autoSave == null) return;
-            
-            if (!_autoSave.value) return;
-            if (GrabbingAnyEdge()) return;
-
-            RequestDataOperation(true, dialogueFile, true);
-        }
-
         private bool GrabbingAnyEdge()
         {
             if (_graphView == null) return true;
@@ -146,44 +202,7 @@ namespace DialogueSystem.Editor.Graph
 
             return false;
         }
-
-
-        private void OnDisable()
-        {
-            if (rootVisualElement != null && rootVisualElement.childCount > 0) rootVisualElement.Remove(_graphView);
-        }
-
-        [OnOpenAsset(1)]
-        public static bool OnOpenDatabase(int instanceID, int line)
-        {
-            var container = EditorUtility.InstanceIDToObject(instanceID) as DialogueContainer;
-            if (container == null) return false;
         
-            var lastFile = AssetDatabase.LoadAssetAtPath<DialogueSystemSettings>(
-                "Packages/com.circenses.dialoguesystem/Editor/DialogueSystemSettings.asset");
-            lastFile.lastOpenFile = container;
-            
-            EditorUtility.SetDirty(lastFile);
-            AssetDatabase.SaveAssetIfDirty(lastFile);
-        
-            if (instance)
-            {
-                instance.dialogueFile = container;
-                instance.CreateStoryGraph();
-            }
-            else
-            {
-                var dialogueSettings = AssetDatabase.LoadAssetAtPath<DialogueSystemSettings>(
-                    "Packages/com.circenses.dialoguesystem/Editor/DialogueSystemSettings.asset");
-                if (dialogueSettings)
-                    GetWindow<StoryGraph>(dialogueSettings.selectedWindow);
-                else
-                    GetWindow<StoryGraph>();
-            }
-        
-            return true;
-        }
-    
         public static System.Type[] GetAllEditorWindowTypes()
         {
             var assemblies = System.AppDomain.CurrentDomain.GetAssemblies();

@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d6a8c47423938d24a9f31ef46ab15df6, type: 3}
   m_Name: DialogueSystemSettings
   m_EditorClassIdentifier: 
-  selectedWindowEnum: 0
-  autoSaveDafault: 0
-  lastOpenFile: {fileID: 11400000, guid: dc6c575636bb6644fa0f9908eeb95d45, type: 2}
+  selectedWindowEnum: 1
+  autoSaveDafault: 1
+  lastOpenFile: {fileID: 11400000, guid: 773da2a0be3993c4a87259410aae7337, type: 2}
