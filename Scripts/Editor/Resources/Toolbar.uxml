@@ -1,0 +1,8 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <Style src="Toolbar.uss" />
+    <uie:Toolbar style="height: 25px; justify-content: space-around; align-items: center; flex-direction: row;">
+        <uie:ToolbarButton text="Guardar" display-tooltip-when-elided="true" name="Guardar" style="-unity-text-align: middle-center; height: 25px; width: auto; justify-content: flex-end; white-space: nowrap; max-height: 100%; left: 0;" />
+        <uie:ToolbarButton text="Limpiar" display-tooltip-when-elided="true" name="Limpiar" style="-unity-text-align: middle-center; height: 25px; width: auto; justify-content: flex-end; white-space: nowrap; max-height: 100%; left: -1px;" />
+        <ui:Toggle label="Auto save    " style="align-items: center; justify-content: flex-end; flex-direction: row; left: auto; max-width: none; margin-left: auto; width: 85px; -unity-font-style: normal; -unity-text-align: upper-right;" />
+    </uie:Toolbar>
+</ui:UXML>
