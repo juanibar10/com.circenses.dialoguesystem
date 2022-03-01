@@ -9,9 +9,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d6a8c47423938d24a9f31ef46ab15df6, type: 3}
+  m_Script: {fileID: 11500000, guid: 9498ed2123bc4dcc9e0ff942af005437, type: 3}
   m_Name: DialogueSystemSettings
   m_EditorClassIdentifier: 
   selectedWindowEnum: 0
-  autoSaveDafault: 0
+  autoSaveDafault: 1
   lastOpenFile: {fileID: 0}

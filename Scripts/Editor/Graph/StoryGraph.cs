@@ -1,11 +1,9 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using UnityEditor;
 using UnityEditor.Callbacks;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
-using System.Reflection;
 
 namespace DialogueSystem.Editor.Graph
 {
@@ -21,7 +19,13 @@ namespace DialogueSystem.Editor.Graph
         public static void CreateGraphViewWindow()
         {
             var dialogueSettings = AssetDatabase.LoadAssetAtPath<DialogueSystemSettings>(
-                "Packages/com.circenses.dialoguesystem/Editor/DialogueSystemSettings.asset");
+                DialogueSystemSettings.DialogueSettingsPathPackages);
+            
+            if (dialogueSettings == null)
+            {
+                dialogueSettings = AssetDatabase.LoadAssetAtPath<DialogueSystemSettings>(
+                    DialogueSystemSettings.DialogueSettingsPathAssets);
+            }
             
             if (dialogueSettings)
                 GetWindow<StoryGraph>(dialogueSettings.selectedWindow);
@@ -34,14 +38,25 @@ namespace DialogueSystem.Editor.Graph
         {
             if (instance)
             {
-                instance.RequestDataOperation(true, instance.dialogueFile, true);
+                if (instance._graphView != null)
+                {
+                    if (instance._graphView.edges.ToList().Count > 0 && instance._graphView.nodes.ToList().Count > 0)
+                        instance.RequestDataOperation(true, instance.dialogueFile, true);
+                }
             }
             
             var container = EditorUtility.InstanceIDToObject(instanceID) as DialogueContainer;
             if (container == null) return false;
         
             var lastFile = AssetDatabase.LoadAssetAtPath<DialogueSystemSettings>(
-                "Packages/com.circenses.dialoguesystem/Editor/DialogueSystemSettings.asset");
+                DialogueSystemSettings.DialogueSettingsPathPackages);
+            
+            if (lastFile == null)
+            {
+                lastFile = AssetDatabase.LoadAssetAtPath<DialogueSystemSettings>(
+                    DialogueSystemSettings.DialogueSettingsPathAssets);
+            }
+            
             lastFile.lastOpenFile = container;
         
             if (instance)
@@ -51,10 +66,8 @@ namespace DialogueSystem.Editor.Graph
             }
             else
             {
-                var dialogueSettings = AssetDatabase.LoadAssetAtPath<DialogueSystemSettings>(
-                    "Packages/com.circenses.dialoguesystem/Editor/DialogueSystemSettings.asset");
-                if (dialogueSettings)
-                    GetWindow<StoryGraph>(dialogueSettings.selectedWindow);
+                if (lastFile)
+                    GetWindow<StoryGraph>(lastFile.selectedWindow);
                 else
                     GetWindow<StoryGraph>();
             }
@@ -73,7 +86,10 @@ namespace DialogueSystem.Editor.Graph
             if (_timer > 10000)
             {
                 _timer = 0;
-                RequestDataOperation(true, dialogueFile, true);
+                if (_graphView == null) return;
+                
+                if (_graphView.edges.ToList().Count > 0 && _graphView.nodes.ToList().Count > 0)
+                    RequestDataOperation(true, dialogueFile, true);
             }
         }
         
@@ -95,22 +111,37 @@ namespace DialogueSystem.Editor.Graph
             if (rootVisualElement != null && rootVisualElement.childCount > 0) rootVisualElement.Remove(_graphView);
             
             if(_autoSave != null && _autoSave.value)
-                RequestDataOperation(true, dialogueFile, true);
+            {
+                if (_graphView == null) return;
+                
+                if (_graphView.edges.ToList().Count > 0 && _graphView.nodes.ToList().Count > 0)
+                    RequestDataOperation(true, dialogueFile, true);
+            }
             
         }
         private void OnDestroy()
         {
-            RequestDataOperation(true, dialogueFile, true);
+            if (_graphView == null) return;
+                
+            if (_graphView.edges.ToList().Count > 0 && _graphView.nodes.ToList().Count > 0)
+                RequestDataOperation(true, dialogueFile, true);
         }
         
         private void OnLostFocus()
         {
-            RequestDataOperation(true, dialogueFile, true);
+            if (_graphView == null) return;
+                
+            if (_graphView.edges.ToList().Count > 0 && _graphView.nodes.ToList().Count > 0)
+                RequestDataOperation(true, dialogueFile, true);
         }
-        
+
         private bool Quit()
         {
-            RequestDataOperation(true, dialogueFile, true);
+            if (_graphView == null) return true;
+            
+            if (_graphView.edges.ToList().Count > 0 && _graphView.nodes.ToList().Count > 0)
+                RequestDataOperation(true, dialogueFile, true);
+
             return true;
         }
        
@@ -118,7 +149,13 @@ namespace DialogueSystem.Editor.Graph
         {
             rootVisualElement.Clear();
             var lastFile = AssetDatabase.LoadAssetAtPath<DialogueSystemSettings>(
-                "Packages/com.circenses.dialoguesystem/Editor/DialogueSystemSettings.asset");
+                DialogueSystemSettings.DialogueSettingsPathPackages);
+            
+            if (lastFile == null)
+            {
+                lastFile = AssetDatabase.LoadAssetAtPath<DialogueSystemSettings>(
+                    DialogueSystemSettings.DialogueSettingsPathAssets);
+            }
             
             dialogueFile = lastFile.lastOpenFile;
             
@@ -144,7 +181,14 @@ namespace DialogueSystem.Editor.Graph
             if (save)
             {
                 var lastFile = AssetDatabase.LoadAssetAtPath<DialogueSystemSettings>(
-                    "Packages/com.circenses.dialoguesystem/Editor/DialogueSystemSettings.asset");
+                    DialogueSystemSettings.DialogueSettingsPathPackages);
+            
+                if (lastFile == null)
+                {
+                    lastFile = AssetDatabase.LoadAssetAtPath<DialogueSystemSettings>(
+                        DialogueSystemSettings.DialogueSettingsPathAssets);
+                }
+                
                 lastFile.lastOpenFile = file;
                 saveUtility.SaveGraph(file, clearList);
             }
@@ -159,7 +203,14 @@ namespace DialogueSystem.Editor.Graph
             ConstructGraphView();
 
             var dialogueSettings = AssetDatabase.LoadAssetAtPath<DialogueSystemSettings>(
-                "Packages/com.circenses.dialoguesystem/Editor/DialogueSystemSettings.asset");
+                DialogueSystemSettings.DialogueSettingsPathPackages);
+            
+            if (dialogueSettings == null)
+            {
+                dialogueSettings = AssetDatabase.LoadAssetAtPath<DialogueSystemSettings>(
+                    DialogueSystemSettings.DialogueSettingsPathAssets);
+            }
+            
             if (dialogueSettings.lastOpenFile == null) return;
 
             dialogueFile = dialogueSettings.lastOpenFile;
@@ -169,6 +220,12 @@ namespace DialogueSystem.Editor.Graph
 
             // Import UXML
             var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/com.circenses.dialoguesystem/Scripts/Editor/Resources/Toolbar.uxml");
+            
+            if (visualTree == null)
+            {
+                visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/DialogueSystem/Scripts/Editor/Resources/Toolbar.uxml");
+            }
+            
             VisualElement labelFromUxml = visualTree.Instantiate();
             var toolbar = labelFromUxml.Children();
             var buttons = toolbar.First().Children().ToList();
@@ -178,7 +235,7 @@ namespace DialogueSystem.Editor.Graph
         
             _autoSave = (Toggle) buttons[2];
             _autoSave.value = AssetDatabase
-                .LoadAssetAtPath<DialogueSystemSettings>(DialogueSystemSettings.DialogueSettingsPath)
+                .LoadAssetAtPath<DialogueSystemSettings>(DialogueSystemSettings.DialogueSettingsPathAssets)
                 .autoSaveDafault;
 
             if (saveButton != null)
