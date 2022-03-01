@@ -10,7 +10,6 @@ namespace DialogueSystem.Editor.Graph
     {
         private EditorWindow _window;
         private StoryGraphView _graphView;
-
         private Texture2D _indentationIcon;
 
         public void Configure(EditorWindow window, StoryGraphView graphView)

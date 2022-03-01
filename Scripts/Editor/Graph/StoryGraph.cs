@@ -136,6 +136,8 @@ namespace DialogueSystem.Editor.Graph
         }
         private void RequestDataOperation(bool save, DialogueContainer file, bool clearList = false)
         {
+            if (file == null) return;
+            
             if (string.IsNullOrEmpty(file.name)) return;
             var saveUtility = GraphSaveUtility.GetInstance(_graphView);
 

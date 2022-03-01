@@ -9,7 +9,7 @@ namespace DialogueSystem.Editor
 {
     public class GraphSaveUtility
     {
-        private IEnumerable<Edge> edges => _graphView.edges.ToList();
+        private IEnumerable<Edge> edges => GetAllEdges();
         private IEnumerable<BaseNode> nodes => AddAllNodes();
         private IEnumerable<DialogueNode> dialogueNodes => AddDialogueNodes();
         private IEnumerable<EndNode> endNodes => AddEndNodes();
@@ -149,6 +149,12 @@ namespace DialogueSystem.Editor
 
             }
             return links;
+        }
+        
+        private IEnumerable<Edge> GetAllEdges()
+        {
+            if (_graphView == null) return new List<Edge>();
+            return _graphView.edges.ToList();
         }
         
         private IEnumerable<BaseNode> AddAllNodes()
