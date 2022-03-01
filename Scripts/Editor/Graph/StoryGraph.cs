@@ -234,10 +234,8 @@ namespace DialogueSystem.Editor.Graph
             var clearButton = (ToolbarButton) buttons[1];
         
             _autoSave = (Toggle) buttons[2];
-            _autoSave.value = AssetDatabase
-                .LoadAssetAtPath<DialogueSystemSettings>(DialogueSystemSettings.DialogueSettingsPathAssets)
-                .autoSaveDafault;
-
+            _autoSave.value = dialogueSettings.autoSaveDafault;
+            
             if (saveButton != null)
                 saveButton.clicked += () => RequestDataOperation(true, dialogueFile);
             if(clearButton != null)
